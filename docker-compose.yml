@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  app:
+    image: php:8.1-fpm
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+      - redis
+      - couchdb
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: rapidpos
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    volumes:
+      - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:6-alpine
+
+  couchdb:
+    image: couchdb:3
+    environment:
+      COUCHDB_USER: admin
+      COUCHDB_PASSWORD: password
+    ports:
+      - "5984:5984"
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+
+volumes:
+  db_data:
+  couchdb_data:
